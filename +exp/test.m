@@ -104,6 +104,20 @@ if isfield(outputs, 'reward')
     outputs.reward.scan(@plus, 0).onValue(setCtrlStr(rewardCtrl))];
 end
 
+% plotting the signals
+sigsFig = figure;
+tmr = timer('ExecutionMode', 'fixedSpacing', 'Period', 100e-3,...
+    'TimerFcn', @(~, ~)plotSignals(sigsFig, evts));
+start(tmr);
+set(sigsFig, 'CloseRequestFcn', @(s,c)stopAndClose(s,c,tmr));
+
+    function stopAndClose(~,~,tmr)
+        stop(tmr);
+        delete(gcf);
+    end
+
+
+
   function applyPars(~,~)
     setElems(vs);
     [~, gpars, cpars] = toConditionServer(parsEditor.Parameters);
