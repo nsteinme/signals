@@ -3,14 +3,8 @@ function e = configureSignalsExperiment(paramStruct, rig)
 %   Detailed explanation goes here
 
 %% Create the experiment object
-e = exp.SignalsExp(paramStruct);
+e = exp.SignalsExp(paramStruct, rig);
 e.Type = paramStruct.type; %record the experiment type
-
-%% Generate audio samples at device sample rate
-% audSampleRate = aud.rate(rig.audio);
-
-%% Confgiure the experiment with the necessary rig hardware
-e.useRig(rig);
 
 end
 

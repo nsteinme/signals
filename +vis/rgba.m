@@ -10,7 +10,7 @@ colour = uint8(round(255*colour));
 alpha = uint8(round(255*alpha));
 
 if ~isscalar(colour) && size(colour, 3) == 1 % overall luminance specified
-  colour = repmat(colour, 1, 1, 3); % replicate to rgb
+  colour = repmat(colour, [1, 1, 3]); % replicate to rgb
 end
 
 img = zeros(h, w, 4, 'uint8');

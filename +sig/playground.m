@@ -60,8 +60,9 @@ renderCount = 0;
 
   function process(~,~)
     tnow = GetSecs;
+%     tic
     post(dt, tnow - tlast);
-%     fprintf('%.0f\n', 1000*(tnow - tlast));
+%     fprintf('%.0f\n', 1000*toc);
     tlast = tnow;
     runSchedule(sn);
     if invalid

@@ -4,15 +4,24 @@ classdef Registry < StructRef
   
   properties
     EntryLogs
+    ClockFun
   end
   
   methods
+    function obj = SignalsExp(clockFun)
+      if nargin < 1
+        obj.ClockFun = @GetSecs;
+      else
+        obj.ClockFun = clockFun;
+      end
+    end
+
     function value = entryAdded(this, name, value)
       % all event entries should be signals, so let's turn them into
       % logging signals
       assert(isa(value, 'sig.Signal'));
 %       fprintf('Signal %s registered\n', name);
-      this.EntryLogs.(name) = value.log();
+      this.EntryLogs.(name) = value.log(this.ClockFun);
     end
     
     function s = logs(this, clockOffset)

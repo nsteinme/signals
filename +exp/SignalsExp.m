@@ -116,14 +116,19 @@ classdef SignalsExp < handle
   end
   
   methods
-    function obj = SignalsExp(paramStruct)
+    function obj = SignalsExp(paramStruct, rig)
+      clock = rig.clock;
+      clockFun = @clock.now;
       obj.TextureById = containers.Map('KeyType', 'char', 'ValueType', 'uint32');
       obj.LayersByStim = containers.Map;
-      obj.Inputs = sig.Registry;
-      obj.Outputs = sig.Registry;
+      obj.Inputs = sig.Registry(clockFun);
+      obj.Outputs = sig.Registry(clockFun);
       obj.Visual = StructRef;
-      obj.Audio = audstream.Registry(192e3);
-      obj.Events = sig.Registry;
+      nAudChannels = getOr(paramStruct, 'numAudChannels', 2);
+      audSampleRate = getOr(paramStruct, 'audSampleRate', 192e3); % Hz
+      audDevIdx = getOr(paramStruct, 'audDevIdx', -1); % -1 means use system default
+      obj.Audio = audstream.Registry(audSampleRate, nAudChannels, audDevIdx);
+      obj.Events = sig.Registry(clockFun);
       %% configure signals
       net = sig.Net;
       obj.Net = net;
@@ -177,11 +182,12 @@ classdef SignalsExp < handle
       obj.Data.stimWindowRenderTimes = zeros(60*60*60*2, 1);
 %       obj.Data.stimWindowUpdateLags = zeros(60*60*60*2, 1);
       obj.ParamsLog = obj.Params.log();
+      obj.useRig(rig);
     end
     
     function useRig(obj, rig)
+      obj.Clock = clock;
       obj.Data.rigName = rig.name;
-      obj.Clock = rig.clock;
       obj.SyncBounds = rig.stimWindow.SyncBounds;
       obj.SyncColourCycle = rig.stimWindow.SyncColourCycle;
       obj.NextSyncIdx = 1;
@@ -312,10 +318,10 @@ classdef SignalsExp < handle
       %refresh the stimulus window
       Screen('Flip', obj.StimWindowPtr);
       
-      % start the experiment loop
-      mainLoop(obj);
-      
       try
+        % start the experiment loop
+        mainLoop(obj);
+        
         %Trigger the 'experimentCleanup' event so any handlers will be called
         cleanupInfo = exp.EventInfo('experimentCleanup', obj.Clock.now, obj);
         fireEvent(obj, cleanupInfo);
@@ -336,6 +342,7 @@ classdef SignalsExp < handle
         if ~isempty(ref)
           saveData(obj); %save the data
         end
+        ensureWindowReady(obj); % complete any outstanding refresh
         %rethrow the exception
         rethrow(ex)
       end
@@ -482,7 +489,8 @@ classdef SignalsExp < handle
     end
     
     function newLayerValues(obj, name, val)
-%       fprintf('new layer %s\n', name);
+%       fprintf('new layer value for %s\n', name);
+%       show = [val.show]
       if isKey(obj.LayersByStim, name)
         prev = obj.LayersByStim(name);
         prevshow = any([prev.show]);
@@ -490,9 +498,11 @@ classdef SignalsExp < handle
         prevshow = false;
       end
       obj.LayersByStim(name) = val;
+
       if any([val.show]) || prevshow
         obj.StimWindowInvalid = true;
       end
+      
     end
 
     function delete(obj)

@@ -11,7 +11,8 @@ nConds = allCondPars.map(@numel);
 nextCondNum = advanceTrial.scan(@plus, 0); % this counter can go over nConds
 hasNext = nextCondNum <= nConds;
 % this counter cant go past nConds
-repeatLastTrial = advanceTrial.keepWhen(hasNext);
+% todo: current hack using identity to delay advanceTrial relative to hasNext
+repeatLastTrial = advanceTrial.identity().keepWhen(hasNext);
 condIdx = repeatLastTrial.scan(@plus, 0);
 condIdx = condIdx.keepWhen(condIdx > 0);
 condIdx.Name = 'condIdx';

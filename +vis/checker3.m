@@ -4,7 +4,6 @@ function elem = checker3(t)
 
 elem = t.Node.Net.subscriptableOrigin('checker');
 
-% defRectSize = [10 10];
 %% make initial layers to be used as templates
 maskTemplate = vis.emptyLayer();
 maskTemplate.isPeriodic = false;

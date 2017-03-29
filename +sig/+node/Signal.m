@@ -331,8 +331,11 @@ classdef Signal < sig.Signal & handle
       tr = sig.node.Signal(node);
     end
     
-    function l = log(this)
-      node = sig.node.Node(this.Node, 'sig.transfer.log', @GetSecs, true);
+    function l = log(this, clockFun)
+      if nargin < 2
+        clockFun = @GetSecs
+      end
+      node = sig.node.Node(this.Node, 'sig.transfer.log', clockFun, true);
       node.FormatSpec = '%s.log()';
       l = sig.node.Signal(node);
       l.Node.CurrValue = struct('time', {}, 'value', {});
